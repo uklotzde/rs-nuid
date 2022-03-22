@@ -57,6 +57,13 @@ pub struct NUID {
 
 impl Default for NUID {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl NUID {
+    /// generate a new `NUID` and properly initialize the prefix, sequential start, and sequential increment.
+    pub fn new() -> Self {
         let mut rng = thread_rng();
 
         let seq = rng.gen_range(0..MAX_SEQ);
@@ -68,13 +75,6 @@ impl Default for NUID {
         };
         n.randomize_prefix();
         n
-    }
-}
-
-impl NUID {
-    /// generate a new `NUID` and properly initialize the prefix, sequential start, and sequential increment.
-    pub fn new() -> Self {
-        Self::default()
     }
 
     pub fn randomize_prefix(&mut self) {
