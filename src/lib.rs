@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#[macro_use]
-extern crate lazy_static;
-extern crate rand;
 
+use once_cell::sync::OnceCell;
 use rand::distributions::Alphanumeric;
 use rand::rngs::OsRng;
 use rand::thread_rng;
@@ -36,13 +34,15 @@ const MIN_INC: u64 = 33;
 const MAX_INC: u64 = 333;
 pub const TOTAL_LEN: usize = 22;
 
-lazy_static! {
-    static ref GLOBAL_NUID: Mutex<NUID> = Mutex::new(NUID::new());
+static GLOBAL_NUID: OnceCell<Mutex<NUID>> = OnceCell::new();
+
+fn global_nuid() -> &'static Mutex<NUID> {
+    GLOBAL_NUID.get_or_init(|| Mutex::new(NUID::new()))
 }
 
 /// Generate the next `NUID` string from the global locked `NUID` instance.
 pub fn next() -> String {
-    GLOBAL_NUID.lock().unwrap().next()
+    global_nuid().lock().unwrap().next()
 }
 
 /// NUID needs to be very fast to generate and truly unique, all while being entropy pool friendly.
@@ -134,8 +134,8 @@ mod tests {
 
     #[test]
     fn global_nuid_init() {
-        assert_eq!(GLOBAL_NUID.lock().unwrap().pre.len(), PRE_LEN);
-        assert_ne!(GLOBAL_NUID.lock().unwrap().seq, 0);
+        assert_eq!(global_nuid().lock().unwrap().pre.len(), PRE_LEN);
+        assert_ne!(global_nuid().lock().unwrap().seq, 0);
     }
 
     #[test]
