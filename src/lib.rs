@@ -36,11 +36,13 @@ pub const TOTAL_LEN: usize = 22;
 
 static GLOBAL_NUID: OnceCell<Mutex<NUID>> = OnceCell::new();
 
+#[must_use]
 fn global_nuid() -> &'static Mutex<NUID> {
     GLOBAL_NUID.get_or_init(|| Mutex::new(NUID::new()))
 }
 
 /// Generate the next `NUID` string from the global locked `NUID` instance.
+#[must_use]
 pub fn next() -> String {
     global_nuid().lock().unwrap().next()
 }
@@ -63,6 +65,7 @@ impl Default for NUID {
 
 impl NUID {
     /// generate a new `NUID` and properly initialize the prefix, sequential start, and sequential increment.
+    #[must_use]
     pub fn new() -> Self {
         let mut rng = thread_rng();
 
@@ -85,6 +88,7 @@ impl NUID {
     }
 
     /// Generate the next `NUID` string.
+    #[must_use]
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> String {
         let mut b: [u8; TOTAL_LEN] = [0; TOTAL_LEN];
@@ -143,13 +147,13 @@ mod tests {
         let mut n = NUID::new();
         n.seq = MAX_SEQ;
         let old = n.pre.to_vec().clone();
-        n.next();
+        let _ = n.next();
         assert_ne!(n.pre.to_vec(), old);
 
         let mut n = NUID::new();
         n.seq = 1;
         let old = n.pre.to_vec().clone();
-        n.next();
+        let _ = n.next();
         assert_eq!(n.pre.to_vec(), old);
     }
 
